@@ -16,8 +16,9 @@ fcntl.ioctl(tun, TUNSETIFF, ifr)
 print("[CLIENT] TUN attached")
 
 # ---------- SOCKET SETUP ----------
-SERVER_IP = "SERVER_PUBLIC_OR_LAN_IP"
+SERVER_IP = "192.168.138.1"
 PORT = 5555
+print(f"Connecting to {SERVER_IP}:{PORT}")
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((SERVER_IP, PORT))

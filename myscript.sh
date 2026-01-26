@@ -70,7 +70,7 @@ echo "Bringing TUN interfaces up"
 sudo ip netns exec client_ns ip link set tun0 up
 echo "Client TUN interface UP done $(sudo ip netns exec client_ns ip addr show tun0)"
 sudo ip netns exec server_ns ip link set tun0 up
-echo "Server TUN interface UP done $(sudo ip netns exec client_ns ip addr show tun0)"
+echo "Server TUN interface UP done $(sudo ip netns exec server_ns ip addr show tun0)"
 
 echo "Now you can run the client and server scripts"
 echo "Yo can also route an ip to the namespace TUN interface and then genrerate traffic to check if it wrking or not"

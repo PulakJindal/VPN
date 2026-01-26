@@ -28,6 +28,7 @@ print("[CLIENT] Connected to VPN server")
 def tun_to_sock():
     while True:
         packet = os.read(tun, 4096)
+        print("[CLIENT] Read packet from TUN:", len(packet))
         sock.sendall(packet)
 
 def sock_to_tun():
@@ -35,6 +36,7 @@ def sock_to_tun():
         packet = sock.recv(4096)
         if not packet:
             break
+        print("[CLIENT] Received packet from server:", len(packet))
         os.write(tun, packet)
 
 threading.Thread(target=tun_to_sock, daemon=True).start()

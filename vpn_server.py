@@ -30,6 +30,7 @@ print(f"[SERVER] Client connected: {addr}")
 def tun_to_sock():
     while True:
         packet = os.read(tun, 4096)
+        print("[SERVER] Read Packets from TUN:", len(packet))
         conn.sendall(packet)
 
 def sock_to_tun():
@@ -37,6 +38,7 @@ def sock_to_tun():
         packet = conn.recv(4096)
         if not packet:
             break
+        print("[SERVER] Received packets from client:", len(packet))
         os.write(tun, packet)
 
 threading.Thread(target=tun_to_sock, daemon=True).start()

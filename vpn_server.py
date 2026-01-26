@@ -3,6 +3,7 @@ import socket
 import fcntl
 import struct
 import threading
+from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
 # ---------- TUN SETUP ----------
 TUNSETIFF = 0x400454ca
@@ -26,19 +27,39 @@ sock.listen(1)
 conn, addr = sock.accept()
 print(f"[SERVER] Client connected: {addr}")
 
+# ---------- ENCRYPTION SETUP ----------
+# ⚠️ TEMP key for lab only (32 bytes)
+PSK = os.urandom(32)
+if(len(PSK)!=32):
+    print("Key length is not 32 bytes")
+    exit(1)
+cipher = ChaCha20Poly1305(PSK)
+
 # ---------- FORWARDING ----------
 def tun_to_sock():
     while True:
         packet = os.read(tun, 4096)
         print("[SERVER] Read Packets from TUN:", len(packet))
-        conn.sendall(packet)
+        #conn.sendall(packet)
+        nonce = os.urandom(12)
+        encrypted = cipher.encrypt(nonce, packet, None)
+        conn.sendall(nonce + encrypted)
+
 
 def sock_to_tun():
     while True:
-        packet = conn.recv(4096)
-        if not packet:
+        # packet = conn.recv(4096)
+        # if not packet:
+        #     break
+        # print("[SERVER] Received packets from client:", len(packet))
+        # os.write(tun, packet)
+        data = conn.recv(4096)
+        if not data:
             break
-        print("[SERVER] Received packets from client:", len(packet))
+        print("[SERVER] Received packets from client:", len(data))
+        nonce = data[:12]
+        encrypted = data[12:]
+        packet = cipher.decrypt(nonce, encrypted, None)
         os.write(tun, packet)
 
 threading.Thread(target=tun_to_sock, daemon=True).start()

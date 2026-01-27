@@ -20,12 +20,10 @@ print("[SERVER] TUN attached")
 SERVER_IP = "0.0.0.0"
 PORT = 5555
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((SERVER_IP, PORT))
-sock.listen(1)
-
-conn, addr = sock.accept()
-print(f"[SERVER] Client connected: {addr}")
+client_addr = None
+# print(f"[SERVER] Client connected: {client_addr}")
 
 # ---------- ENCRYPTION SETUP ----------
 # ⚠️ TEMP key for lab only (32 bytes)
@@ -36,56 +34,24 @@ if(len(PSK)!=32):
 cipher = ChaCha20Poly1305(PSK)
 
 # ---------- FORWARDING ----------
-def send_packet(conn, data):
-    packet_len = len(data)
-    header = struct.pack("!I", packet_len)  # converts a Python integer into exactly 4 bytes, network byte order
-    conn.sendall(header + data)
-
 def tun_to_sock():
     while True:
         packet = os.read(tun, 4096)
         print("[SERVER] Read Packets from TUN:", len(packet))
+        if client_addr is None:
+            continue  # no client yet
         #conn.sendall(packet)
         nonce = os.urandom(12)
         encrypted = cipher.encrypt(nonce, packet, None)
         # print("[SERVER] Sending encrypted packet to client:", encrypted)
         # conn.sendall(nonce + encrypted)
-        send_packet(conn, nonce + encrypted)
-
-def recv_packet(conn):  # Receive exactly one packet from TCP using length framing.
-    # Step 1: read the 4-byte length
-    raw_len = b""
-    while len(raw_len) < 4:
-        chunk = conn.recv(4 - len(raw_len))
-        if not chunk:
-            return None
-        raw_len += chunk
-
-    packet_len = struct.unpack("!I", raw_len)[0]
-
-    # Step 2: read the packet payload
-    data = b""
-    while len(data) < packet_len:
-        chunk = conn.recv(packet_len - len(data))
-        if not chunk:
-            return None
-        data += chunk
-
-    return data
+        sock.sendto(nonce + encrypted, client_addr)
 
 def sock_to_tun():
     while True:
-        # packet = conn.recv(4096)
-        # if not packet:
-        #     break
-        # print("[SERVER] Received packets from client:", len(packet))
-        # os.write(tun, packet)
-        # data = conn.recv(4096)
-        # if not data:
-        #     break
-        data = recv_packet(conn)
-        if data is None:
-            break
+        data, addr = sock.recvfrom(4096)
+        global client_addr
+        client_addr = addr  # remember who sent it
         print("[SERVER] Received packets from client:", len(data))
         nonce = data[:12]
         encrypted = data[12:]

@@ -42,25 +42,6 @@ sudo ip netns exec server_ns ip link set lo up
 echo "Server side loopback up done"
 echo ""
 
-echo "Checking connectivity by ping from client to server ip"
-count=0
-while [ $count -lt 3 ]; do
-	echo "Attempt $((count+1))"
-	if sudo ip netns exec client_ns ping -c 1 192.168.138.1; then
-		echo "Ping sucessful, continuing script..."
-		break
-	else 
-		echo "Ping failed!"
-		count=$((count+1))
-		if [ $count -eq 3 ]; then
-			echo "Failed 3 times. Exiting script"
-			exit 1
-		fi
-		echo "Retrying..."
-		sleep 2
-	fi
-done
-
 echo "Creating TUN interfaces for the two namespaces..."
 sudo ip netns exec client_ns ip tuntap add dev tun0 mode tun
 echo "Client TUN interface created"

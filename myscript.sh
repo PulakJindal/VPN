@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 
 echo "Making the namespaces...."
 sudo ip netns add client_ns
@@ -126,3 +126,5 @@ echo "Applying NAT on HOST (CORRECT PLACE)..."
 sudo iptables -t nat -A POSTROUTING -s 172.30.0.0/24 -o "$HOST_IFACE" -j MASQUERADE
 sudo iptables -t nat -L POSTROUTING -n -v
 echo ""
+
+sudo ip netns exec server_ns python3 vpn_server.py

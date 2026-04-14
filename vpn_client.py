@@ -55,10 +55,13 @@ def sock_to_tun():
         # print("[CLIENT] Writing packet to TUN:", packet)
         os.write(tun, packet)
 
-threading.Thread(target=tun_to_sock, daemon=True).start()
-threading.Thread(target=sock_to_tun, daemon=True).start()
+t1 = threading.Thread(target=tun_to_sock, daemon=True)
+t2 = threading.Thread(target=sock_to_tun, daemon=True)
+
+t1.start()
+t2.start()
 
 print("[CLIENT] VPN forwarding started")
 
-while True:
-    pass
+t1.join()
+t2.join()

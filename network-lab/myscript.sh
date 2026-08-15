@@ -127,4 +127,5 @@ sudo iptables -t nat -A POSTROUTING -s 172.30.0.0/24 -o "$HOST_IFACE" -j MASQUER
 sudo iptables -t nat -L POSTROUTING -n -v
 echo ""
 
-sudo ip netns exec server_ns python3 vpn_server.py
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+sudo ip netns exec server_ns python3 "$SCRIPT_DIR/vpn/server/vpn_server.py"

@@ -28,7 +28,7 @@ print("[SERVER] UDP VPN server started")
 print("[SERVER] Listening on", SERVER_IP, PORT)
 
 # ---------- ENCRYPTION SETUP ----------
-# ⚠️ TEMP key for lab only (32 bytes)
+# TEMP key for lab only (32 bytes)
 PSK = b'\x0b\x9f\xb9Q\x13\x1e\x8emH\xb4\x97\x98SE\xed\xc6h%M\xec]l\r\xd5\x98\xbc\xdd\xeb\xddp\x99h'
 if(len(PSK)!=32):
     print("Key length is not 32 bytes")

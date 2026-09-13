@@ -127,8 +127,7 @@ sudo ip netns exec server_ns iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o se
 echo "$(sudo ip netns exec server_ns iptables -t nat -L POSTROUTING -n -v)"
 echo ""
 
-echo "Detecting HOST internet interface..."
-HOST_IFACE=$(ip route | grep default | awk '{print $5}')
+echo "Detecting HOST internet intgit rm --cached vpn/__pycache__/tun.cpython-314.pycerface..."
 
 if [ -n "$HOST_IFACE" ]; then
     echo "Your host default interface is: $HOST_IFACE"

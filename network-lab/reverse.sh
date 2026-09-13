@@ -6,7 +6,7 @@
 # Run with: sudo bash cleanup.sh
 # ============================================================
 
-
+HOST_IFACE=$(ip route | grep default | awk '{print $5}')
 # -------------------------------------------------------
 # STEP 1: Remove NAT rules on HOST
 # These were added by myscript.sh to masquerade traffic
@@ -30,6 +30,7 @@ echo ""
 # going out through server_veth2 toward the host.
 # -------------------------------------------------------
 echo "[2] Removing NAT rule inside server_ns..."
+
 sudo ip netns exec server_ns iptables -t nat -D POSTROUTING -s 10.8.0.0/24 -o server_veth2 -j MASQUERADE
 echo "    Removed MASQUERADE rule inside server_ns"
 echo ""
@@ -41,7 +42,8 @@ echo ""
 # server_ns to the host. Deleting one end of a veth pair
 # automatically deletes the other end (server_veth2 inside server_ns).
 # -------------------------------------------------------
-sudo firewall-cmd --zone=trusted --remove-masquerade
+sudo iptables -D FORWARD -i host_veth -o "$HOST_IFACE" -j ACCEPT
+sudo iptables -D FORWARD -i "$HOST_IFACE" -o host_veth -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo firewall-cmd --zone=trusted --remove-interface=host_veth
 
 echo "[3] Removing host_veth (and its peer server_veth2 inside server_ns)..."

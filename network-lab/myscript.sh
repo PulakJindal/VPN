@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HOST_IFACE=$(ip route | grep default | awk '{print $5}')
+
 echo "Making the namespaces...."
 sudo ip netns add client_ns
 sudo ip netns add server_ns
@@ -104,6 +106,11 @@ sudo firewall-cmd --zone=trusted --add-interface=host_veth
 sudo firewall-cmd --zone=trusted --add-masquerade
 echo ""
 
+echo "Allowing forwarding between host_veth and $HOST_IFACE (runtime iptables rule)..."
+sudo iptables -I FORWARD 1 -i host_veth -o "$HOST_IFACE" -j ACCEPT
+sudo iptables -I FORWARD 1 -i "$HOST_IFACE" -o host_veth -m state --state RELATED,ESTABLISHED -j ACCEPT
+echo ""
+
 echo "Adding route in server_ns to route to HOST..."
 sudo ip netns exec server_ns ip route add default via 172.30.0.1
 echo "Route added: server_ns → default via 172.30.0.1"
@@ -139,4 +146,4 @@ sudo iptables -t nat -L POSTROUTING -n -v
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-sudo ip netns exec server_ns python3 "$SCRIPT_DIR/../vpn/vpn_server.py"
+sudo ip netns exec server_ns env PYTHONPATH="$SCRIPT_DIR/.." python3 "$SCRIPT_DIR/../vpn/vpn_server.py"

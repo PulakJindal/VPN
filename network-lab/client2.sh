@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "Creating second client namespace and connecting to server namespace"
 sudo ip netns add client2_ns
 echo "Namespace created: client2_ns"
@@ -23,7 +25,7 @@ echo ""
 
 echo "Bringing server_veth3 up and lo up for client2_ns..."
 sudo ip netns exec server_ns ip link set server_veth3 up
-sudo ip netns exec server_ns ip addr add 192.168.138.1/24 dev server_veth3
+sudo ip netns exec server_ns ip addr add 192.168.139.1/24 dev server_veth3
 sudo ip netns exec client2_ns ip link set lo up
 echo "Server side interface up done"
 echo ""
@@ -32,6 +34,7 @@ echo "Creating TUN interface for client2_ns namespace and bringing it up..."
 sudo ip netns exec client2_ns ip tuntap add dev tun0 mode tun
 sudo ip netns exec client2_ns ip addr add 10.8.0.3/24 dev tun0
 sudo ip netns exec client2_ns ip link set tun0 up
+sudo ip netns exec client2_ns ip link set tun0 mtu 1400
 sudo ip netns exec client2_ns ip route add 8.8.8.8/32 dev tun0
 # sudo ip netns exec client2_ns ip route add default dev tun0
 echo "Client2 TUN interface created and brought up with IP 10.8.0.3/24"

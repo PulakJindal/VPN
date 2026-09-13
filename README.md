@@ -16,10 +16,30 @@ Then I connect the server to the Host via another veth because in the end host i
 Then I enabled ip forwarding on the server and the host.
 Then I enabled the NAT on both also.
 
-To do all the above things, I made two scripts from which myscript.sh makes the two namespaces and connects them via veth.
-Then I start the two programs, vpn_server.py and vpn_client.py.
-Then, to connect the server and host and enable ip forwarding and NAT on both, I made the script myscript2.sh
+Encryption (ChaCha20-Poly1305) and a source-IP spoofing check are already working.
+The protocol is UDP now. Still using a hardcoded pre-shared key — no real key exchange yet.
+Next: real key exchange, then get off Linux network namespaces so this can run on separate machines.
 
-Right now, I am working on the encryption and the authentication.
-Then I will try to switch the protocol from TCP to UDP to make it faster.
-Then I will try to make a server that can work on different OSes, like windows or android.
+## Project layout
+
+- `vpn/` — the actual VPN: `vpn_server.py`, `vpn_client.py`
+- `network-lab/` — everything that sets up the test environment on one machine:
+  - `myscript.sh` — creates `client_ns`/`server_ns`, wires up veths, enables NAT/forwarding, starts the server
+  - `client2.sh` — adds a second client namespace, for testing multiple clients
+  - `testing.sh` — ping checks across the setup
+  - `reverse.sh` — tears everything down
+- `learning/` — the original TCP echo server/client from before the TUN work started. Not part of the live VPN, kept for reference.
+
+## Running it
+
+```bash
+pip install cryptography
+sudo bash network-lab/myscript.sh          # sets up namespaces, starts the server
+sudo ip netns exec client_ns python3 vpn/vpn_client.py   # in another terminal
+sudo bash network-lab/testing.sh           # sanity-check pings
+sudo bash network-lab/reverse.sh           # tear it all down
+```
+
+## Known issues
+
+- `client2.sh` assigns the second client's veth the same IP already used by the first (`192.168.138.1/24`) — collision, not yet fixed.

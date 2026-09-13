@@ -1,21 +1,11 @@
 import os
 import socket
-import fcntl
-import struct
 import threading
 import ipaddress
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+from vpn.tun import create_tun_interface
 
-# ---------- TUN SETUP ----------
-TUNSETIFF = 0x400454ca
-IFF_TUN   = 0x0001
-IFF_NO_PI = 0x1000
-
-tun = os.open("/dev/net/tun", os.O_RDWR)
-ifr = struct.pack("16sH", b"tun0", IFF_TUN | IFF_NO_PI)
-fcntl.ioctl(tun, TUNSETIFF, ifr)
-
-print("[SERVER] TUN attached")
+tun = create_tun_interface()
 
 # ---------- SOCKET SETUP ----------
 SERVER_IP = "0.0.0.0"

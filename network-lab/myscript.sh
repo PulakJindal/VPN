@@ -63,6 +63,12 @@ sudo ip netns exec server_ns ip link set tun0 up
 echo "Server TUN interface UP done $(sudo ip netns exec server_ns ip addr show tun0)"
 echo ""
 
+echo "Setting MTU on TUN interfaces to 1400..."
+sudo ip netns exec client_ns ip link set tun0 mtu 1400
+sudo ip netns exec server_ns ip link set tun0 mtu 1400
+echo "MTU set to 1400 on both TUN interfaces"
+echo ""
+
 echo "Adding route in client namespace for test IP..."
 sudo ip netns exec client_ns ip route add 8.8.8.8/32 dev tun0
 echo "Route added: client_ns → 8.8.8.8 via tun0"
@@ -91,6 +97,11 @@ echo "Assigning ip to host_veth and bringing it up..."
 sudo ip addr add 172.30.0.1/24 dev host_veth
 sudo ip link set host_veth up
 echo "host_veth configured ip -> 172.30.0.1/24 and up on HOST"
+echo ""
+
+echo "Trusting host_veth in firewalld and enabling masquerade..."
+sudo firewall-cmd --zone=trusted --add-interface=host_veth
+sudo firewall-cmd --zone=trusted --add-masquerade
 echo ""
 
 echo "Adding route in server_ns to route to HOST..."
@@ -128,4 +139,4 @@ sudo iptables -t nat -L POSTROUTING -n -v
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-sudo ip netns exec server_ns python3 "$SCRIPT_DIR/vpn/server/vpn_server.py"
+sudo ip netns exec server_ns python3 "$SCRIPT_DIR/../vpn/vpn_server.py"

@@ -41,6 +41,9 @@ echo ""
 # server_ns to the host. Deleting one end of a veth pair
 # automatically deletes the other end (server_veth2 inside server_ns).
 # -------------------------------------------------------
+sudo firewall-cmd --zone=trusted --remove-masquerade
+sudo firewall-cmd --zone=trusted --remove-interface=host_veth
+
 echo "[3] Removing host_veth (and its peer server_veth2 inside server_ns)..."
 sudo ip link del host_veth
 echo "    Deleted host_veth (server_veth2 auto-deleted as it's a veth pair)"
